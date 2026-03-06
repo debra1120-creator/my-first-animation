@@ -1,0 +1,54 @@
+:root {
+  --scene-height: 420px;
+}
+
+.scene {
+  height: var(--scene-height);
+}
+
+.receptor {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: #10b981;
+  border: 2px solid #047857;
+  box-shadow: 0 0 0 2px #ecfeff;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.receptor.bound {
+  background: #2563eb;
+  transform: scale(1.15);
+}
+
+.particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  opacity: 0.9;
+  transform: translate(-50%, -50%);
+}
+
+.particle.glucose {
+  background: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+}
+
+.particle.insulin {
+  background: #3b82f6;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+}
+
+.scenePulse {
+  animation: pulseScene 480ms ease;
+}
+
+@keyframes pulseScene {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 16px rgba(245, 158, 11, 0);
+  }
+}
