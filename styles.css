@@ -2,6 +2,10 @@
   --scene-height: 420px;
 }
 
+.registration-hidden {
+  display: none;
+}
+
 .scene {
   height: var(--scene-height);
 }

@@ -3,7 +3,8 @@ const state = {
   insulin: 50,
   uptake: 0,
   particles: [],
-  lastTs: 0
+  lastTs: 0,
+  simulationStarted: false
 };
 
 const refs = {
@@ -21,10 +22,25 @@ const refs = {
   glucoseLayer: document.getElementById('glucoseLayer'),
   insulinLayer: document.getElementById('insulinLayer'),
   scene: document.querySelector('.scene'),
-  sequenceText: document.getElementById('sequenceText')
+  sequenceText: document.getElementById('sequenceText'),
+  registrationOverlay: document.getElementById('registrationOverlay'),
+  registrationForm: document.getElementById('registrationForm'),
+  learnerNameInput: document.getElementById('learnerNameInput'),
+  learnerEmailInput: document.getElementById('learnerEmailInput'),
+  registrationError: document.getElementById('registrationError'),
+  learnerInfo: document.getElementById('learnerInfo')
 };
 
 const receptors = Array.from(document.querySelectorAll('.receptor'));
+const disposableDomains = new Set([
+  'mailinator.com',
+  'tempmail.com',
+  '10minutemail.com',
+  'guerrillamail.com',
+  'yopmail.com',
+  'trashmail.com',
+  'getnada.com'
+]);
 
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
@@ -117,6 +133,8 @@ function updateReadouts() {
 }
 
 function tick(ts) {
+  if (!state.simulationStarted) return;
+
   const dt = state.lastTs ? (ts - state.lastTs) / 1000 : 0.016;
   state.lastTs = ts;
 
@@ -169,6 +187,15 @@ function tick(ts) {
   requestAnimationFrame(tick);
 }
 
+function startSimulation() {
+  if (state.simulationStarted) return;
+  state.simulationStarted = true;
+  state.lastTs = 0;
+  spawnParticles('glucose', 14);
+  spawnParticles('insulin', 8);
+  requestAnimationFrame(tick);
+}
+
 refs.insulinSlider.addEventListener('input', (e) => {
   state.insulin = Number(e.target.value);
 });
@@ -194,6 +221,44 @@ refs.resetBtn.addEventListener('click', () => {
   refs.sequenceText.textContent = '1) Eating raises blood sugar. 2) Insulin binds receptors. 3) Cells absorb glucose. 4) Blood sugar falls.';
 });
 
-spawnParticles('glucose', 14);
-spawnParticles('insulin', 8);
-requestAnimationFrame(tick);
+refs.learnerNameInput.addEventListener('input', () => {
+  refs.registrationError.classList.add('hidden');
+});
+
+refs.learnerEmailInput.addEventListener('input', () => {
+  refs.registrationError.classList.add('hidden');
+});
+
+refs.registrationForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const name = refs.learnerNameInput.value.trim();
+  const email = refs.learnerEmailInput.value.trim();
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const emailDomain = email.split('@')[1]?.toLowerCase() || '';
+  const hasValidName = name.length >= 2;
+  const isDisposableEmail = disposableDomains.has(emailDomain);
+
+  if (!hasValidName) {
+    refs.registrationError.textContent = 'Please enter a name with at least 2 characters.';
+    refs.registrationError.classList.remove('hidden');
+    return;
+  }
+
+  if (!isEmailValid) {
+    refs.registrationError.textContent = 'Please enter a valid email address.';
+    refs.registrationError.classList.remove('hidden');
+    return;
+  }
+
+  if (isDisposableEmail) {
+    refs.registrationError.textContent = 'Please use a non-disposable email address.';
+    refs.registrationError.classList.remove('hidden');
+    return;
+  }
+
+  refs.registrationError.classList.add('hidden');
+  refs.learnerInfo.textContent = `Registered learner: ${name} (${email})`;
+  refs.learnerInfo.classList.remove('hidden');
+  refs.registrationOverlay.classList.add('registration-hidden');
+  startSimulation();
+});
